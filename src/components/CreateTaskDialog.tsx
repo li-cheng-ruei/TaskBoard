@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,8 +53,8 @@ const taskSchema = z.object({
   startDate: z.date({
     required_error: "Start date is required",
   }),
-  durationHours: z.string().transform(val => Number(val)),
-  durationMinutes: z.string().transform(val => Number(val)),
+  durationHours: z.coerce.number(),
+  durationMinutes: z.coerce.number(),
   registrationDeadline: z.date({
     required_error: "Registration deadline is required",
   }),
@@ -76,16 +77,16 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
       title: "",
       description: "",
       startDate: new Date(),
-      durationHours: "1",
-      durationMinutes: "0",
+      durationHours: 1,
+      durationMinutes: 0,
       registrationDeadline: new Date(),
     },
   });
 
   function onSubmit(data: TaskFormValues) {
     const startDate = data.startDate;
-    const hours = Number(data.durationHours);
-    const minutes = Number(data.durationMinutes);
+    const hours = data.durationHours;
+    const minutes = data.durationMinutes;
     
     // Calculate end date based on duration
     const endDate = addMinutes(addHours(startDate, hours), minutes);
@@ -242,8 +243,8 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                   <FormItem>
                     <FormLabel>Duration (Hours)</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value.toString()}
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value.toString()}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -273,8 +274,8 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                   <FormItem>
                     <FormLabel>Duration (Minutes)</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value.toString()}
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value.toString()}
                     >
                       <FormControl>
                         <SelectTrigger>

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,8 +54,8 @@ const taskSchema = z.object({
   startDate: z.date({
     required_error: "Start date is required",
   }),
-  durationHours: z.string().transform(val => Number(val)),
-  durationMinutes: z.string().transform(val => Number(val)),
+  durationHours: z.coerce.number(),
+  durationMinutes: z.coerce.number(),
   registrationDeadline: z.date({
     required_error: "Registration deadline is required",
   }),
@@ -97,8 +96,8 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, open, onOpenChang
       title: task.title,
       description: task.description || "",
       startDate: task.startDate,
-      durationHours: duration.hours.toString(),
-      durationMinutes: duration.minutes.toString(),
+      durationHours: duration.hours,
+      durationMinutes: duration.minutes,
       registrationDeadline: task.registrationDeadline,
     },
   });
@@ -110,16 +109,16 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, open, onOpenChang
       title: task.title,
       description: task.description || "",
       startDate: task.startDate,
-      durationHours: duration.hours.toString(),
-      durationMinutes: duration.minutes.toString(),
+      durationHours: duration.hours,
+      durationMinutes: duration.minutes,
       registrationDeadline: task.registrationDeadline,
     });
   }, [task, form]);
 
   function onSubmit(data: TaskFormValues) {
     const startDate = data.startDate;
-    const hours = Number(data.durationHours);
-    const minutes = Number(data.durationMinutes);
+    const hours = data.durationHours;
+    const minutes = data.durationMinutes;
     
     // Calculate end date based on duration
     const endDate = addMinutes(addHours(startDate, hours), minutes);
@@ -275,8 +274,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, open, onOpenChang
                   <FormItem>
                     <FormLabel>Duration (Hours)</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value.toString()}
+                      onValueChange={(value) => field.onChange(Number(value))}
                       value={field.value.toString()}
                     >
                       <FormControl>
@@ -307,8 +305,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, open, onOpenChang
                   <FormItem>
                     <FormLabel>Duration (Minutes)</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value.toString()}
+                      onValueChange={(value) => field.onChange(Number(value))}
                       value={field.value.toString()}
                     >
                       <FormControl>
