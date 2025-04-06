@@ -3,7 +3,7 @@ import React from "react";
 import { useTasks } from "@/contexts/TasksContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Task } from "@/types";
-import { format } from "date-fns";
+import { format, formatDuration, intervalToDuration } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,10 +45,19 @@ interface TaskCardProps {
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
-  const { user } = useAuth();
+  const { user, allUsers } = useAuth();
   const isEmployee = user?.role === 'employee';
   const isRegistered = task.registeredEmployees.includes(user?.id || '');
   const isAssigned = task.assignedTo === user?.id;
+  
+  // Format time duration
+  const duration = intervalToDuration({ start: task.startDate, end: task.endDate });
+  const formattedDuration = formatDuration(duration, { format: ['hours', 'minutes'] });
+  
+  // Get registered employee names
+  const registeredEmployees = allUsers
+    .filter(u => task.registeredEmployees.includes(u.id))
+    .map(u => u.name);
   
   let statusClass = '';
   if (task.status === 'pending') {
@@ -74,28 +83,33 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
     <Card className={cn("overflow-hidden", statusClass)}>
       <CardHeader>
         <div className="flex justify-between items-start">
-          <CardTitle>{task.title}</CardTitle>
+          <CardTitle className="break-words">{task.title}</CardTitle>
           {getStatusBadge()}
         </div>
-        <CardDescription>{task.description}</CardDescription>
+        {task.description && <CardDescription className="break-words">{task.description}</CardDescription>}
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex items-center text-sm">
-          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-          <span>
-            {format(task.startDate, "PPP")} - {format(task.endDate, "PPP")}
+          <Calendar className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <span className="break-words">
+            {format(task.startDate, "MMM d HH:mm")} ({formattedDuration})
           </span>
         </div>
         <div className="flex items-center text-sm">
-          <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-          <span>Registration Deadline: {format(task.registrationDeadline, "PPP")}</span>
+          <Clock className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <span className="break-words">Registration Deadline: {format(task.registrationDeadline, "MMM d HH:mm")}</span>
         </div>
-        {(isEmployee || user?.role === 'manager') && (
-          <div className="flex items-center text-sm">
-            <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+        <div className="flex items-start text-sm">
+          <Users className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+          <div className="flex flex-col">
             <span>Registered: {task.registeredEmployees.length}</span>
+            {registeredEmployees.length > 0 && (
+              <span className="text-xs text-muted-foreground break-words">
+                {registeredEmployees.join(', ')}
+              </span>
+            )}
           </div>
-        )}
+        </div>
       </CardContent>
       <CardFooter>
         <TaskActions task={task} />

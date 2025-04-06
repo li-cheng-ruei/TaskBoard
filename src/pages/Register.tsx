@@ -9,22 +9,35 @@ import { Label } from "@/components/ui/label";
 import { CalendarClock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-const Login = () => {
+const Register = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [facility, setFacility] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // In a real app, we would make an API call to register the user
+    // For demo purposes, we'll just simulate registration and login
     try {
+      // Here we would normally call an API to register the user
+      console.log("Registering user:", { name, email, password, facility });
+      
+      // For demo purposes, just log in the user after registration
       await login(email, password);
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created successfully.",
+      });
       navigate("/dashboard");
     } catch (error) {
       toast({
-        title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        title: "Registration Failed",
+        description: "There was a problem creating your account. Please try again.",
         variant: "destructive",
       });
     }
@@ -38,16 +51,27 @@ const Login = () => {
             <CalendarClock className="h-12 w-12 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-primary">Schedule Sync Manager</h1>
-          <p className="text-muted-foreground mt-2">Sign in to manage your tasks</p>
+          <p className="text-muted-foreground mt-2">Create a new account</p>
         </div>
         
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardTitle>Register</CardTitle>
+            <CardDescription>Enter your details to create an account</CardDescription>
           </CardHeader>
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleRegister}>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input 
+                  id="name" 
+                  type="text" 
+                  placeholder="John Doe" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input 
@@ -70,32 +94,29 @@ const Login = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="facility">Hospital/Health Center</Label>
+                <Input 
+                  id="facility" 
+                  type="text" 
+                  placeholder="City Hospital" 
+                  value={facility}
+                  onChange={(e) => setFacility(e.target.value)}
+                  required
+                />
+              </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full">Sign In</Button>
-              <Button type="button" variant="outline" className="w-full" onClick={() => navigate("/register")}>
-                Create an Account
+              <Button type="submit" className="w-full">Register</Button>
+              <Button type="button" variant="outline" className="w-full" onClick={() => navigate("/login")}>
+                Back to Login
               </Button>
             </CardFooter>
           </form>
         </Card>
-        
-        <div className="mt-6 p-4 bg-secondary/50 rounded-lg">
-          <p className="text-sm font-medium">Demo Accounts:</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-            <div className="text-sm p-2 bg-secondary rounded">
-              <p><strong>Manager:</strong> manager@example.com</p>
-              <p><strong>Password:</strong> any password</p>
-            </div>
-            <div className="text-sm p-2 bg-secondary rounded">
-              <p><strong>Employee:</strong> employee1@example.com</p>
-              <p><strong>Password:</strong> any password</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Register;

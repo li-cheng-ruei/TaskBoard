@@ -39,12 +39,12 @@ const TaskCalendar = () => {
 
   return (
     <>
-      <Card className="p-4 max-w-md mx-auto">
+      <Card className="p-4 w-full mx-auto">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleDayClick}
-          className="p-3 pointer-events-auto"
+          className="p-3 pointer-events-auto w-full"
           modifiers={{
             hasTask: taskDates,
           }}

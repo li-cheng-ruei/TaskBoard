@@ -4,6 +4,7 @@ export interface User {
   name: string;
   email: string;
   role: 'manager' | 'employee';
+  facility?: string;
 }
 
 export interface Task {

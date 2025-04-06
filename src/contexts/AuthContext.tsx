@@ -7,6 +7,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  allUsers: User[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,18 +27,21 @@ const demoUsers: User[] = [
     name: "Manager User",
     email: "manager@example.com",
     role: "manager",
+    facility: "Central Hospital"
   },
   {
     id: "2",
     name: "Employee One",
     email: "employee1@example.com",
     role: "employee",
+    facility: "Central Hospital"
   },
   {
     id: "3",
     name: "Employee Two",
     email: "employee2@example.com",
     role: "employee",
+    facility: "East Health Center"
   },
 ];
 
@@ -84,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, allUsers: demoUsers }}>
       {children}
     </AuthContext.Provider>
   );
