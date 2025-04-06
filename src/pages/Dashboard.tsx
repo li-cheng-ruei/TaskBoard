@@ -3,23 +3,24 @@ import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTasks } from "@/contexts/TasksContext";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, ListIcon, PlusIcon } from "lucide-react";
+import { CalendarIcon, ListIcon, PlusIcon, UsersIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from "@/components/TaskList";
 import TaskCalendar from "@/components/TaskCalendar";
 import Header from "@/components/Header";
 import { Task } from "@/types";
 import CreateTaskDialog from "@/components/CreateTaskDialog";
+import EmployeeManagement from "@/components/EmployeeManagement";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { getUserTasks, getPendingTasks } = useTasks();
+  const { getUserTasks, tasks } = useTasks();
   const [openCreateTask, setOpenCreateTask] = useState(false);
   const [selectedTab, setSelectedTab] = useState("list");
   const userTasks = getUserTasks();
   
   // For managers, show all tasks, for employees only their tasks
-  const tasksToDisplay = user?.role === 'manager' ? getPendingTasks() : userTasks;
+  const tasksToDisplay = user?.role === 'manager' ? tasks : userTasks;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -49,7 +50,7 @@ const Dashboard = () => {
         <Tabs 
           value={selectedTab} 
           onValueChange={setSelectedTab}
-          className="w-full"
+          className="w-full h-full"
         >
           <div className="flex justify-center mb-6">
             <TabsList>
@@ -61,6 +62,12 @@ const Dashboard = () => {
                 <CalendarIcon className="h-4 w-4 mr-2" />
                 Calendar View
               </TabsTrigger>
+              {user?.role === 'manager' && (
+                <TabsTrigger value="employees" className="flex items-center">
+                  <UsersIcon className="h-4 w-4 mr-2" />
+                  Employees
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
@@ -68,9 +75,15 @@ const Dashboard = () => {
             <TaskList tasks={tasksToDisplay} />
           </TabsContent>
 
-          <TabsContent value="calendar" className="mt-2">
+          <TabsContent value="calendar" className="mt-2 h-[calc(100vh-250px)]">
             <TaskCalendar />
           </TabsContent>
+
+          {user?.role === 'manager' && (
+            <TabsContent value="employees" className="mt-2">
+              <EmployeeManagement />
+            </TabsContent>
+          )}
         </Tabs>
 
         <CreateTaskDialog 

@@ -1,6 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { User } from "../types";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -8,6 +9,7 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   allUsers: User[];
+  updateUserRole: (userId: string, role: "manager" | "employee") => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,6 +50,8 @@ const demoUsers: User[] = [
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>(demoUsers);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is already logged in from localStorage
@@ -55,6 +59,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+    
+    // Check if users have been saved to localStorage
+    const savedUsers = localStorage.getItem("users");
+    if (savedUsers) {
+      setUsers(JSON.parse(savedUsers));
+    } else {
+      localStorage.setItem("users", JSON.stringify(demoUsers));
+    }
+    
     setIsLoading(false);
   }, []);
 
@@ -63,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // In a real app, we'd make an API call here
       // For demo purposes, we'll use our demo users
-      const foundUser = demoUsers.find(u => u.email === email);
+      const foundUser = users.find(u => u.email === email);
       
       if (!foundUser) {
         throw new Error("Invalid credentials");
@@ -87,8 +100,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const updateUserRole = (userId: string, role: "manager" | "employee") => {
+    const updatedUsers = users.map(user => {
+      if (user.id === userId) {
+        return { ...user, role };
+      }
+      return user;
+    });
+    
+    setUsers(updatedUsers);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    
+    // Update current user if their role was changed
+    if (user && user.id === userId) {
+      const updatedUser = { ...user, role };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+    
+    toast({
+      title: "Role Updated",
+      description: `User role has been updated successfully.`,
+      duration: 3000,
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, allUsers: demoUsers }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      isLoading, 
+      allUsers: users,
+      updateUserRole 
+    }}>
       {children}
     </AuthContext.Provider>
   );

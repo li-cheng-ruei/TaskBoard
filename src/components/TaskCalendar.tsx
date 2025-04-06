@@ -39,12 +39,12 @@ const TaskCalendar = () => {
 
   return (
     <>
-      <Card className="p-4 w-full mx-auto">
+      <Card className="p-4 w-full mx-auto h-full">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleDayClick}
-          className="p-3 pointer-events-auto w-full max-w-none" 
+          className="p-3 pointer-events-auto w-full max-w-none h-full" 
           modifiers={{
             hasTask: taskDates,
           }}
@@ -83,7 +83,7 @@ const TaskCalendar = () => {
         <DialogContent className="sm:max-w-[80vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Tasks for {selectedDate ? format(selectedDate, "PP") : ""}
+              Tasks for {selectedDate ? format(selectedDate, "MMM d") : ""}
             </DialogTitle>
           </DialogHeader>
           {selectedDate && <TaskList tasks={getTasksByDate(selectedDate)} />}

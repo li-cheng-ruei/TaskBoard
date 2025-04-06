@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -69,7 +69,14 @@ const taskSchema = z.object({
 type TaskFormValues = z.infer<typeof taskSchema>;
 
 const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange }) => {
-  const { addTask } = useTasks();
+  const { addTask, tasks } = useTasks();
+  const [prevTemplates, setPrevTemplates] = useState<string[]>([]);
+  
+  // Extract unique task titles for templates
+  React.useEffect(() => {
+    const uniqueTitles = Array.from(new Set(tasks.map(task => task.title)));
+    setPrevTemplates(uniqueTitles);
+  }, [tasks]);
   
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -82,6 +89,17 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
       registrationDeadline: new Date(),
     },
   });
+
+  // Function to find and apply task template
+  const applyTemplate = (title: string) => {
+    const templateTask = tasks.find(task => task.title === title);
+    if (templateTask) {
+      form.setValue("title", templateTask.title);
+      form.setValue("description", templateTask.description || "");
+      form.setValue("durationHours", templateTask.duration.hours);
+      form.setValue("durationMinutes", templateTask.duration.minutes);
+    }
+  };
 
   function onSubmit(data: TaskFormValues) {
     const startDate = data.startDate;
@@ -128,9 +146,30 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Task title" {...field} />
-                  </FormControl>
+                  <div className="flex gap-2">
+                    <FormControl className="flex-1">
+                      <Input placeholder="Task title" {...field} />
+                    </FormControl>
+                    {prevTemplates.length > 0 && (
+                      <Select 
+                        onValueChange={(value) => applyTemplate(value)}
+                      >
+                        <SelectTrigger className="w-auto whitespace-nowrap">
+                          <SelectValue placeholder="Use template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Previous Tasks</SelectLabel>
+                            {prevTemplates.map((title) => (
+                              <SelectItem key={title} value={title}>
+                                {title}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
