@@ -13,6 +13,10 @@ export interface Task {
   description: string;
   startDate: Date;
   endDate: Date;
+  duration: {
+    hours: number;
+    minutes: number;
+  };
   registrationDeadline: Date;
   createdBy: string;
   status: 'pending' | 'assigned' | 'completed';

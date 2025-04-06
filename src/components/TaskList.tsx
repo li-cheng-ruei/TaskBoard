@@ -3,7 +3,7 @@ import React from "react";
 import { useTasks } from "@/contexts/TasksContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Task } from "@/types";
-import { format, formatDuration, intervalToDuration } from "date-fns";
+import { format, formatDuration } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,8 +51,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const isAssigned = task.assignedTo === user?.id;
   
   // Format time duration
-  const duration = intervalToDuration({ start: task.startDate, end: task.endDate });
-  const formattedDuration = formatDuration(duration, { format: ['hours', 'minutes'] });
+  const durationText = task.duration ? 
+    `${task.duration.hours}h ${task.duration.minutes > 0 ? task.duration.minutes + 'm' : ''}` : 
+    formatDuration({ hours: Math.floor((task.endDate.getTime() - task.startDate.getTime()) / 3600000) });
   
   // Get registered employee names
   const registeredEmployees = allUsers
@@ -92,7 +93,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         <div className="flex items-center text-sm">
           <Calendar className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
           <span className="break-words">
-            {format(task.startDate, "MMM d HH:mm")} ({formattedDuration})
+            {format(task.startDate, "MMM d HH:mm")} ({durationText})
           </span>
         </div>
         <div className="flex items-center text-sm">

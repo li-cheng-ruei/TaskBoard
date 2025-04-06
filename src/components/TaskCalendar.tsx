@@ -44,7 +44,7 @@ const TaskCalendar = () => {
           mode="single"
           selected={selectedDate}
           onSelect={handleDayClick}
-          className="p-3 pointer-events-auto w-full"
+          className="p-3 pointer-events-auto w-full max-w-none" // Made full width
           modifiers={{
             hasTask: taskDates,
           }}
@@ -80,7 +80,7 @@ const TaskCalendar = () => {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[80vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Tasks for {selectedDate ? format(selectedDate, "PP") : ""}

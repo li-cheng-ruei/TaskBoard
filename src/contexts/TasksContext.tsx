@@ -1,13 +1,14 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { Task } from "../types";
 import { useAuth } from "./AuthContext";
-import { addDays, isBefore } from "date-fns";
+import { addDays, isBefore, addHours, addMinutes } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 
 interface TasksContextType {
   tasks: Task[];
-  addTask: (task: Omit<Task, "id" | "createdBy" | "status" | "registeredEmployees">) => void;
+  addTask: (task: Omit<Task, "id" | "createdBy" | "status" | "registeredEmployees" | "duration"> & {
+    duration?: { hours: number; minutes: number }
+  }) => void;
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   deleteTask: (taskId: string) => void;
   registerForTask: (taskId: string) => void;
@@ -37,6 +38,7 @@ const initialTasks: Task[] = [
     description: "Present the quarterly project results to the team",
     startDate: addDays(new Date(), 2),
     endDate: addDays(new Date(), 2),
+    duration: { hours: 1, minutes: 30 },
     registrationDeadline: addDays(new Date(), 1),
     createdBy: "1",
     status: "pending",
@@ -48,6 +50,7 @@ const initialTasks: Task[] = [
     description: "Discuss new requirements with the client",
     startDate: addDays(new Date(), -1),
     endDate: addDays(new Date(), -1),
+    duration: { hours: 2, minutes: 0 },
     registrationDeadline: addDays(new Date(), -2),
     createdBy: "1",
     status: "completed",
@@ -60,6 +63,7 @@ const initialTasks: Task[] = [
     description: "Monthly team building activity",
     startDate: addDays(new Date(), 5),
     endDate: addDays(new Date(), 5),
+    duration: { hours: 3, minutes: 0 },
     registrationDeadline: addDays(new Date(), 3),
     createdBy: "1",
     status: "pending",
@@ -130,15 +134,27 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [tasks]);
 
-  const addTask = (taskData: Omit<Task, "id" | "createdBy" | "status" | "registeredEmployees">) => {
+  const addTask = (taskData: Omit<Task, "id" | "createdBy" | "status" | "registeredEmployees" | "duration"> & {
+    duration?: { hours: number; minutes: number }
+  }) => {
     if (!user) return;
+    
+    let endDate = taskData.endDate;
+    const duration = taskData.duration || { hours: 1, minutes: 0 };
+    
+    // If endDate is not provided, calculate it from startDate and duration
+    if (taskData.duration) {
+      endDate = addMinutes(addHours(taskData.startDate, duration.hours), duration.minutes);
+    }
     
     const newTask: Task = {
       ...taskData,
       id: Date.now().toString(),
       createdBy: user.id,
       status: "pending",
-      registeredEmployees: []
+      registeredEmployees: [],
+      duration: duration,
+      endDate: endDate
     };
 
     setTasks(prev => [...prev, newTask]);
