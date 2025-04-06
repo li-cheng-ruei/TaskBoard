@@ -10,7 +10,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import React from "react";
 
+// Initialize a QueryClient instance outside of any component
 const queryClient = new QueryClient();
 
 // Protected route component
@@ -59,20 +61,21 @@ const AppRoutes = () => {
   );
 };
 
+// Move the QueryClientProvider to be rendered inside the React component tree
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <TasksProvider>
-          <BrowserRouter>
+  <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <TasksProvider>
             <AppRoutes />
-          </BrowserRouter>
-        </TasksProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+          </TasksProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </BrowserRouter>
 );
 
 export default App;

@@ -44,7 +44,7 @@ const TaskCalendar = () => {
           mode="single"
           selected={selectedDate}
           onSelect={handleDayClick}
-          className="p-3 pointer-events-auto w-full max-w-none" // Made full width
+          className="p-3 pointer-events-auto w-full max-w-none" 
           modifiers={{
             hasTask: taskDates,
           }}

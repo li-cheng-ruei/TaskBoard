@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, Clock } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { format, addHours, addMinutes } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -52,8 +53,8 @@ const taskSchema = z.object({
   startDate: z.date({
     required_error: "Start date is required",
   }),
-  durationHours: z.string().transform(val => parseInt(val, 10)),
-  durationMinutes: z.string().transform(val => parseInt(val, 10)),
+  durationHours: z.string().transform(val => Number(val)),
+  durationMinutes: z.string().transform(val => Number(val)),
   registrationDeadline: z.date({
     required_error: "Registration deadline is required",
   }),
