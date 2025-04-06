@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -85,8 +84,8 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
 
   function onSubmit(data: TaskFormValues) {
     const startDate = data.startDate;
-    const hours = data.durationHours;
-    const minutes = data.durationMinutes;
+    const hours = Number(data.durationHours);
+    const minutes = Number(data.durationMinutes);
     
     // Calculate end date based on duration
     const endDate = addMinutes(addHours(startDate, hours), minutes);
