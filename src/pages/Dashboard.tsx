@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from "@/components/TaskList";
 import TaskCalendar from "@/components/TaskCalendar";
 import Header from "@/components/Header";
-import { Task } from "@/types";
 import CreateTaskDialog from "@/components/CreateTaskDialog";
 import EmployeeManagement from "@/components/EmployeeManagement";
 
@@ -26,7 +25,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
-      <main className="flex-1 container py-6 px-4 md:px-6">
+      <main className="flex-1 container py-6 px-4 md:px-6 flex flex-col">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -50,7 +49,7 @@ const Dashboard = () => {
         <Tabs 
           value={selectedTab} 
           onValueChange={setSelectedTab}
-          className="w-full h-full"
+          className="w-full flex-1 flex flex-col"
         >
           <div className="flex justify-center mb-6">
             <TabsList>
@@ -71,16 +70,16 @@ const Dashboard = () => {
             </TabsList>
           </div>
 
-          <TabsContent value="list" className="mt-2 space-y-4">
+          <TabsContent value="list" className="mt-2 space-y-4 flex-1">
             <TaskList tasks={tasksToDisplay} />
           </TabsContent>
 
-          <TabsContent value="calendar" className="mt-2 h-[calc(100vh-250px)]">
+          <TabsContent value="calendar" className="mt-2 flex-1 min-h-[500px]">
             <TaskCalendar />
           </TabsContent>
 
           {user?.role === 'manager' && (
-            <TabsContent value="employees" className="mt-2">
+            <TabsContent value="employees" className="mt-2 flex-1">
               <EmployeeManagement />
             </TabsContent>
           )}

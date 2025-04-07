@@ -38,13 +38,13 @@ const TaskCalendar = () => {
   const taskDates = getTaskDates();
 
   return (
-    <>
-      <Card className="p-4 w-full mx-auto h-full">
+    <div className="h-full w-full flex flex-col">
+      <Card className="flex-1 p-0 w-full mx-auto overflow-hidden">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleDayClick}
-          className="p-3 pointer-events-auto w-full max-w-none h-full" 
+          className="h-full w-full max-w-none"
           modifiers={{
             hasTask: taskDates,
           }}
@@ -64,7 +64,7 @@ const TaskCalendar = () => {
               return (
                 <div
                   className={cn(
-                    "flex items-center justify-center",
+                    "flex items-center justify-center h-full w-full",
                     isTaskDate && "relative"
                   )}
                 >
@@ -89,7 +89,7 @@ const TaskCalendar = () => {
           {selectedDate && <TaskList tasks={getTasksByDate(selectedDate)} />}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 
