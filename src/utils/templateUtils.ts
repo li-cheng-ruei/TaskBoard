@@ -18,8 +18,8 @@ export const getTemplates = (): Record<string, TaskTemplate> => {
 export const saveTemplate = (name: string, template: TaskTemplate): boolean => {
   if (!name.trim()) {
     toast({
-      title: "Template Error",
-      description: "Please provide a template name",
+      title: "模板錯誤",
+      description: "請提供模板名稱",
       variant: "destructive",
     });
     return false;
@@ -30,8 +30,8 @@ export const saveTemplate = (name: string, template: TaskTemplate): boolean => {
   localStorage.setItem("taskTemplates", JSON.stringify(updatedTemplates));
   
   toast({
-    title: "Template Saved",
-    description: `Template "${name}" has been saved`,
+    title: "模板已保存",
+    description: `模板 "${name}" 已成功保存`,
   });
   
   return true;
@@ -44,8 +44,8 @@ export const deleteTemplate = (name: string): void => {
   localStorage.setItem("taskTemplates", JSON.stringify(remainingTemplates));
   
   toast({
-    title: "Template Deleted",
-    description: `Template "${name}" has been deleted`,
+    title: "模板已刪除",
+    description: `模板 "${name}" 已被刪除`,
   });
 };
 

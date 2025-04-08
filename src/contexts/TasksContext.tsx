@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { Task } from "../types";
 import { useAuth } from "./AuthContext";
@@ -25,7 +26,7 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 export const useTasks = () => {
   const context = useContext(TasksContext);
   if (context === undefined) {
-    throw new Error("useTasks must be used within a TasksProvider");
+    throw new Error("useTasks 必須在 TasksProvider 內部使用");
   }
   return context;
 };
@@ -34,8 +35,8 @@ export const useTasks = () => {
 const initialTasks: Task[] = [
   {
     id: "1",
-    title: "Project Presentation",
-    description: "Present the quarterly project results to the team",
+    title: "項目演示",
+    description: "向團隊展示季度項目結果",
     startDate: addDays(new Date(), 2),
     endDate: addDays(new Date(), 2),
     duration: { hours: 1, minutes: 30 },
@@ -46,8 +47,8 @@ const initialTasks: Task[] = [
   },
   {
     id: "2",
-    title: "Client Meeting",
-    description: "Discuss new requirements with the client",
+    title: "客戶會議",
+    description: "與客戶討論新需求",
     startDate: addDays(new Date(), -1),
     endDate: addDays(new Date(), -1),
     duration: { hours: 2, minutes: 0 },
@@ -59,8 +60,8 @@ const initialTasks: Task[] = [
   },
   {
     id: "3",
-    title: "Team Building",
-    description: "Monthly team building activity",
+    title: "團隊建設",
+    description: "月度團隊建設活動",
     startDate: addDays(new Date(), 5),
     endDate: addDays(new Date(), 5),
     duration: { hours: 3, minutes: 0 },
@@ -90,7 +91,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }));
         setTasks(parsedTasks);
       } catch (error) {
-        console.error("Error parsing saved tasks:", error);
+        console.error("解析保存的任務時出錯:", error);
         setTasks(initialTasks);
         localStorage.setItem("tasks", JSON.stringify(initialTasks));
       }
@@ -119,8 +120,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
         
         toast({
-          title: "Task Assigned",
-          description: `Task "${task.title}" has been automatically assigned.`,
+          title: "任務已分配",
+          description: `任務 "${task.title}" 已自動分配給一名隨機員工。`,
           duration: 5000,
         });
       }
@@ -160,8 +161,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTasks(prev => [...prev, newTask]);
     
     toast({
-      title: "Task Created",
-      description: `Task "${newTask.title}" has been created successfully.`,
+      title: "任務已創建",
+      description: `任務 "${newTask.title}" 已成功創建。`,
       duration: 3000,
     });
   };
@@ -176,8 +177,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTasks(prev => prev.filter(task => task.id !== taskId));
     
     toast({
-      title: "Task Deleted",
-      description: "The task has been deleted successfully.",
+      title: "任務已刪除",
+      description: "任務已成功刪除。",
       duration: 3000,
     });
   };
@@ -196,8 +197,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }));
     
     toast({
-      title: "Registration Successful",
-      description: "You have successfully registered for this task.",
+      title: "報名成功",
+      description: "您已成功報名此任務。",
       duration: 3000,
     });
   };
@@ -216,8 +217,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }));
     
     toast({
-      title: "Unregistered",
-      description: "You have successfully unregistered from this task.",
+      title: "取消報名",
+      description: "您已成功取消報名此任務。",
       duration: 3000,
     });
   };

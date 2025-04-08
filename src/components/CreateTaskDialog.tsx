@@ -23,23 +23,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, Clock, Plus, Save, Trash2 } from "lucide-react";
-import { format, addDays, set } from "date-fns";
+import { CalendarIcon, Save, Trash2 } from "lucide-react";
+import { format, addDays } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { getTemplates, saveTemplate, deleteTemplate } from "@/utils/templateUtils";
 
 interface CreateTaskDialogProps {
   open: boolean;
@@ -61,33 +53,25 @@ interface CreateTaskDialogProps {
 
 // Schema for task validation
 const taskSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, "標題是必填的"),
   description: z.string().optional(),
   startDate: z.date({
-    required_error: "Start date is required",
+    required_error: "開始日期是必填的",
   }),
-  startHour: z.coerce.number().min(0).max(23),
-  startMinute: z.coerce.number().min(0).max(59),
+  startHour: z.string().regex(/^([0-1]?[0-9]|2[0-3])$/, "小時格式不正確"),
+  startMinute: z.string().regex(/^[0-5]?[0-9]$/, "分鐘格式不正確"),
   durationHours: z.coerce.number().min(0).max(24),
   durationMinutes: z.coerce.number().min(0).max(59),
-  // Registration deadline is auto-calculated
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
 
 const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange }) => {
-  const { addTask, tasks } = useTasks();
-  const [templates, setTemplates] = useState<Record<string, any>>(() => {
-    const savedTemplates = localStorage.getItem("taskTemplates");
-    return savedTemplates ? JSON.parse(savedTemplates) : {};
-  });
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const { addTask } = useTasks();
+  const [templates, setTemplates] = useState<Record<string, any>>(getTemplates);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const { toast } = useToast();
-  
-  // Extract unique task titles for templates
-  const templateOptions = Object.keys(templates);
   
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -95,8 +79,8 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
       title: "",
       description: "",
       startDate: new Date(),
-      startHour: new Date().getHours(),
-      startMinute: Math.floor(new Date().getMinutes() / 15) * 15,
+      startHour: new Date().getHours().toString(),
+      startMinute: Math.floor(new Date().getMinutes() / 15) * 15 === 0 ? "00" : (Math.floor(new Date().getMinutes() / 15) * 15).toString(),
       durationHours: 1,
       durationMinutes: 0,
     },
@@ -106,7 +90,6 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
   const applyTemplate = (name: string) => {
     const templateData = templates[name];
     if (templateData) {
-      setSelectedTemplate(name);
       form.setValue("title", templateData.title);
       form.setValue("description", templateData.description || "");
       form.setValue("durationHours", templateData.durationHours);
@@ -116,53 +99,31 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
   
   // Function to save current form as template
   const saveAsTemplate = () => {
-    if (!templateName.trim()) {
-      toast({
-        title: "Template Error",
-        description: "Please provide a template name",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const formData = form.getValues();
-    const newTemplate = {
-      title: formData.title,
-      description: formData.description,
-      durationHours: formData.durationHours,
-      durationMinutes: formData.durationMinutes,
-    };
-    
-    const updatedTemplates = { ...templates, [templateName]: newTemplate };
-    localStorage.setItem("taskTemplates", JSON.stringify(updatedTemplates));
-    setTemplates(updatedTemplates);
-    setSaveTemplateDialogOpen(false);
-    setTemplateName("");
-    
-    toast({
-      title: "Template Saved",
-      description: `Template "${templateName}" has been saved`,
+    const result = saveTemplate(templateName, {
+      title: form.getValues("title"),
+      description: form.getValues("description"),
+      durationHours: form.getValues("durationHours"),
+      durationMinutes: form.getValues("durationMinutes"),
     });
+    
+    if (result) {
+      setTemplates(getTemplates());
+      setSaveTemplateDialogOpen(false);
+      setTemplateName("");
+    }
   };
   
-  // Function to delete template
-  const deleteTemplate = (name: string) => {
-    const { [name]: _, ...remainingTemplates } = templates;
-    localStorage.setItem("taskTemplates", JSON.stringify(remainingTemplates));
-    setTemplates(remainingTemplates);
-    setSelectedTemplate(null);
-    
-    toast({
-      title: "Template Deleted",
-      description: `Template "${name}" has been deleted`,
-    });
+  // Function to handle template deletion
+  const handleDeleteTemplate = (name: string) => {
+    deleteTemplate(name);
+    setTemplates(getTemplates());
   };
 
   function onSubmit(data: TaskFormValues) {
     // Create a start date with the combined date and time
     const startDate = new Date(data.startDate);
-    startDate.setHours(data.startHour);
-    startDate.setMinutes(data.startMinute);
+    startDate.setHours(parseInt(data.startHour));
+    startDate.setMinutes(parseInt(data.startMinute));
     
     // Calculate registration deadline (7 days before start date)
     const registrationDeadline = addDays(startDate, -7);
@@ -188,22 +149,19 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
     onOpenChange(false);
   }
 
-  // Generate hours options (0-23)
-  const hoursOptions = Array.from({ length: 24 }, (_, i) => i);
-  
   // Generate minutes options (0, 15, 30, 45)
   const minutesOptions = [0, 15, 30, 45];
   
-  // Generate duration hours options (0-24)
-  const durationHoursOptions = Array.from({ length: 25 }, (_, i) => i);
+  // Template options
+  const templateOptions = Object.keys(templates);
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Create New Task</DialogTitle>
-            <DialogDescription>Fill in the details to create a new task</DialogDescription>
+            <DialogTitle>創建新任務</DialogTitle>
+            <DialogDescription>填寫詳細信息以創建新任務</DialogDescription>
           </DialogHeader>
           
           <Form {...form}>
@@ -213,85 +171,65 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>標題</FormLabel>
                     <div className="flex gap-2">
                       <FormControl className="flex-1">
-                        <Input placeholder="Task title" {...field} />
+                        <Input placeholder="任務標題" {...field} />
                       </FormControl>
-                      <div className="flex gap-1">
-                        {templateOptions.length > 0 && (
-                          <Select 
-                            value={selectedTemplate || ""}
-                            onValueChange={(value) => applyTemplate(value)}
-                          >
-                            <SelectTrigger className="w-auto whitespace-nowrap">
-                              <SelectValue placeholder="Use template" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectLabel>Templates</SelectLabel>
-                                {templateOptions.map((name) => (
-                                  <SelectItem key={name} value={name}>
-                                    {name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        )}
-                        
-                        {selectedTemplate ? (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="icon" title="Delete template">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Template</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete the "{selectedTemplate}" template? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={() => deleteTemplate(selectedTemplate)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        ) : (
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => setSaveTemplateDialogOpen(true)} 
-                            title="Save as template"
-                          >
-                            <Save className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setSaveTemplateDialogOpen(true)} 
+                        title="保存為模板"
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
                     </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
+              {templateOptions.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium">模板</label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {templateOptions.map((name) => (
+                      <div key={name} className="flex items-center gap-1 border rounded-md p-1">
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs h-7"
+                          onClick={() => applyTemplate(name)}
+                        >
+                          {name}
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6"
+                          onClick={() => handleDeleteTemplate(name)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormLabel>描述 (選填)</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Describe the task details" 
+                        placeholder="描述任務詳情" 
                         {...field} 
                         className="min-h-[100px]"
                       />
@@ -307,7 +245,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                 name="startDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Start Date</FormLabel>
+                    <FormLabel>開始日期</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -321,7 +259,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                             {field.value ? (
                               format(field.value, "MMM d")
                             ) : (
-                              <span>Pick a date</span>
+                              <span>選擇日期</span>
                             )}
                             <CalendarIcon className="h-4 w-4 opacity-50" />
                           </Button>
@@ -349,24 +287,14 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                   name="startHour"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Time (Hour)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Hour" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {hoursOptions.map((hour) => (
-                            <SelectItem key={hour} value={hour.toString()}>
-                              {hour.toString().padStart(2, '0')}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>開始時間 (小時)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="text" 
+                          placeholder="00-23" 
+                          {...field} 
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -377,24 +305,14 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                   name="startMinute"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Time (Minute)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Minute" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {minutesOptions.map((minute) => (
-                            <SelectItem key={minute} value={minute.toString()}>
-                              {minute.toString().padStart(2, '0')}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>開始時間 (分鐘)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="text" 
+                          placeholder="00-59" 
+                          {...field} 
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -408,24 +326,15 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                   name="durationHours"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Duration (Hours)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Hours" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {durationHoursOptions.map((hour) => (
-                            <SelectItem key={hour} value={hour.toString()}>
-                              {hour} {hour === 1 ? "hour" : "hours"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>持續時間 (小時)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          max="24" 
+                          {...field} 
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -436,24 +345,20 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                   name="durationMinutes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Duration (Minutes)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Minutes" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
+                      <FormLabel>持續時間 (分鐘)</FormLabel>
+                      <FormControl>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          value={field.value}
+                          onChange={field.onChange}
+                        >
                           {minutesOptions.map((minute) => (
-                            <SelectItem key={minute} value={minute.toString()}>
-                              {minute} {minute === 1 ? "minute" : "minutes"}
-                            </SelectItem>
+                            <option key={minute} value={minute}>
+                              {minute}
+                            </option>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </select>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -462,15 +367,15 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
               
               <div className="pt-2">
                 <p className="text-sm text-muted-foreground">
-                  Registration deadline will be automatically set to 7 days before the task start date.
+                  報名截止日期將自動設定為任務開始日期的7天前。
                 </p>
               </div>
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancel
+                  取消
                 </Button>
-                <Button type="submit">Create Task</Button>
+                <Button type="submit">創建任務</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -481,26 +386,26 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
       <Dialog open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Save as Template</DialogTitle>
+            <DialogTitle>保存為模板</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <label htmlFor="templateName" className="text-sm font-medium leading-none">
-                Template Name
+                模板名稱
               </label>
               <Input
                 id="templateName"
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
-                placeholder="Enter template name"
+                placeholder="輸入模板名稱"
               />
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setSaveTemplateDialogOpen(false)}>
-              Cancel
+              取消
             </Button>
-            <Button onClick={saveAsTemplate}>Save Template</Button>
+            <Button onClick={saveAsTemplate}>保存模板</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

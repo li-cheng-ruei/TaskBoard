@@ -23,6 +23,16 @@ const TaskCalendar = () => {
     return Array.from(uniqueDates).map((dateStr) => new Date(dateStr));
   };
 
+  // Function to count tasks per day
+  const getTaskCountByDate = () => {
+    const taskCounts: Record<string, number> = {};
+    tasks.forEach((task) => {
+      const dateStr = format(task.startDate, "yyyy-MM-dd");
+      taskCounts[dateStr] = (taskCounts[dateStr] || 0) + 1;
+    });
+    return taskCounts;
+  };
+
   // Function to handle day click
   const handleDayClick = (date: Date | undefined) => {
     if (!date) return;
@@ -36,6 +46,7 @@ const TaskCalendar = () => {
   };
 
   const taskDates = getTaskDates();
+  const taskCountsByDate = getTaskCountByDate();
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -57,20 +68,31 @@ const TaskCalendar = () => {
           }}
           components={{
             DayContent: (props) => {
-              const isTaskDate = taskDates.some((date) =>
-                isSameDay(date, props.date)
-              );
+              const dateStr = format(props.date, "yyyy-MM-dd");
+              const taskCount = taskCountsByDate[dateStr] || 0;
+              const isTaskDate = taskCount > 0;
 
               return (
                 <div
                   className={cn(
-                    "flex items-center justify-center h-full w-full",
+                    "flex flex-col items-center justify-center h-full w-full",
                     isTaskDate && "relative"
                   )}
                 >
-                  {props.date.getDate()}
+                  <div className="mb-1">{props.date.getDate()}</div>
                   {isTaskDate && (
-                    <span className="absolute bottom-0 w-1 h-1 bg-primary rounded-full"></span>
+                    <div className="flex gap-0.5 mt-1">
+                      {Array.from({ length: Math.min(taskCount, 3) }).map((_, i) => (
+                        <span 
+                          key={i} 
+                          className="w-1.5 h-1.5 bg-primary rounded-full" 
+                          title={`${taskCount} 個任務`}
+                        />
+                      ))}
+                      {taskCount > 3 && (
+                        <span className="text-[0.6rem] text-primary ml-0.5">+{taskCount - 3}</span>
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -83,7 +105,7 @@ const TaskCalendar = () => {
         <DialogContent className="sm:max-w-[80vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Tasks for {selectedDate ? format(selectedDate, "MMM d") : ""}
+              {selectedDate ? format(selectedDate, "MMM d") : ""} 的任務
             </DialogTitle>
           </DialogHeader>
           {selectedDate && <TaskList tasks={getTasksByDate(selectedDate)} />}

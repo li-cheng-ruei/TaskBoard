@@ -28,11 +28,11 @@ const Dashboard = () => {
       <main className="flex-1 container py-6 px-4 md:px-6 flex flex-col">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">儀表板</h1>
             <p className="text-muted-foreground mt-1">
               {user?.role === 'manager' 
-                ? 'Manage tasks and monitor progress' 
-                : 'View your assigned and registered tasks'}
+                ? '管理任務並監控進度' 
+                : '查看您分配的和已報名的任務'}
             </p>
           </div>
 
@@ -41,7 +41,7 @@ const Dashboard = () => {
               className="mt-4 md:mt-0" 
               onClick={() => setOpenCreateTask(true)}
             >
-              <PlusIcon className="mr-2 h-4 w-4" /> Create Task
+              <PlusIcon className="mr-2 h-4 w-4" /> 創建任務
             </Button>
           )}
         </div>
@@ -55,16 +55,16 @@ const Dashboard = () => {
             <TabsList>
               <TabsTrigger value="list" className="flex items-center">
                 <ListIcon className="h-4 w-4 mr-2" />
-                List View
+                列表視圖
               </TabsTrigger>
               <TabsTrigger value="calendar" className="flex items-center">
                 <CalendarIcon className="h-4 w-4 mr-2" />
-                Calendar View
+                日曆視圖
               </TabsTrigger>
               {user?.role === 'manager' && (
                 <TabsTrigger value="employees" className="flex items-center">
                   <UsersIcon className="h-4 w-4 mr-2" />
-                  Employees
+                  員工管理
                 </TabsTrigger>
               )}
             </TabsList>

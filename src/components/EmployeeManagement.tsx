@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { User } from "@/types";
 import {
   Table,
   TableBody,
@@ -65,8 +64,8 @@ const EmployeeManagement = () => {
     updateUserRole(userId, newRole);
     
     toast({
-      title: "Role Updated",
-      description: `User role has been updated successfully.`,
+      title: "角色已更新",
+      description: `用戶角色已成功更新。`,
       duration: 3000,
     });
   };
@@ -76,8 +75,8 @@ const EmployeeManagement = () => {
     updateUserStatus(userId, isActive);
     
     toast({
-      title: isActive ? "User Activated" : "User Deactivated",
-      description: `User has been ${isActive ? "activated" : "deactivated"} successfully.`,
+      title: isActive ? "用戶已啟用" : "用戶已停用",
+      description: `用戶已成功${isActive ? "啟用" : "停用"}。`,
       duration: 3000,
     });
   };
@@ -87,8 +86,8 @@ const EmployeeManagement = () => {
     deleteUser(userId);
     
     toast({
-      title: "User Deleted",
-      description: "User has been deleted successfully.",
+      title: "用戶已刪除",
+      description: "用戶已成功刪除。",
       duration: 3000,
     });
   };
@@ -97,11 +96,11 @@ const EmployeeManagement = () => {
     <Card className="w-full">
       <CardHeader>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <CardTitle>Employee Management</CardTitle>
+          <CardTitle>員工管理</CardTitle>
           <div className="relative w-full md:w-64">
             <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search employees..."
+              placeholder="搜索員工..."
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -114,12 +113,12 @@ const EmployeeManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Facility</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>姓名</TableHead>
+                <TableHead>郵箱</TableHead>
+                <TableHead>醫療機構</TableHead>
+                <TableHead>狀態</TableHead>
+                <TableHead>角色</TableHead>
+                <TableHead className="text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -131,7 +130,7 @@ const EmployeeManagement = () => {
                     <TableCell>{employee.facility || "-"}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded text-xs ${employee.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                        {employee.isActive ? "Active" : "Inactive"}
+                        {employee.isActive ? "啟用" : "停用"}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -142,11 +141,11 @@ const EmployeeManagement = () => {
                         }
                       >
                         <SelectTrigger className="w-[130px]">
-                          <SelectValue placeholder="Select role" />
+                          <SelectValue placeholder="選擇角色" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="employee">Employee</SelectItem>
-                          <SelectItem value="manager">Manager</SelectItem>
+                          <SelectItem value="employee">員工</SelectItem>
+                          <SelectItem value="manager">管理員</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
@@ -154,37 +153,37 @@ const EmployeeManagement = () => {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm">
-                            Actions
+                            操作
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Manage User</DropdownMenuLabel>
+                          <DropdownMenuLabel>管理用戶</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleStatusChange(employee.id, !employee.isActive)}>
                             <UserX className="mr-2 h-4 w-4" />
-                            {employee.isActive ? "Deactivate User" : "Activate User"}
+                            {employee.isActive ? "停用用戶" : "啟用用戶"}
                           </DropdownMenuItem>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete User
+                                刪除用戶
                               </DropdownMenuItem>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogTitle>刪除用戶</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete {employee.name}? This action cannot be undone.
+                                  您確定要刪除 {employee.name} 嗎？此操作無法撤銷。
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>取消</AlertDialogCancel>
                                 <AlertDialogAction 
                                   onClick={() => handleDeleteUser(employee.id)}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                  Delete
+                                  刪除
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -197,7 +196,7 @@ const EmployeeManagement = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
-                    No employees found.
+                    未找到員工。
                   </TableCell>
                 </TableRow>
               )}
