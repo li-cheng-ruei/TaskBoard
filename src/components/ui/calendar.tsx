@@ -20,7 +20,7 @@ function Calendar({
       className={cn("p-3 pointer-events-auto w-full h-full", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full h-full",
-        month: "space-y-4 w-full h-full",
+        month: "space-y-4 w-full h-full flex-1",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",
         nav: "space-x-1 flex items-center",
@@ -30,7 +30,7 @@ function Calendar({
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
-        table: "w-full border-collapse space-y-1 h-full",
+        table: "w-full border-collapse space-y-1 h-full flex-1",
         head_row: "flex w-full",
         head_cell:
           "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",

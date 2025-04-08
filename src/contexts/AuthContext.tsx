@@ -10,6 +10,8 @@ interface AuthContextType {
   isLoading: boolean;
   allUsers: User[];
   updateUserRole: (userId: string, role: "manager" | "employee") => void;
+  updateUserStatus: (userId: string, isActive: boolean) => void;
+  deleteUser: (userId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,21 +31,24 @@ const demoUsers: User[] = [
     name: "Manager User",
     email: "manager@example.com",
     role: "manager",
-    facility: "Central Hospital"
+    facility: "Central Hospital",
+    isActive: true
   },
   {
     id: "2",
     name: "Employee One",
     email: "employee1@example.com",
     role: "employee",
-    facility: "Central Hospital"
+    facility: "Central Hospital",
+    isActive: true
   },
   {
     id: "3",
     name: "Employee Two",
     email: "employee2@example.com",
     role: "employee",
-    facility: "East Health Center"
+    facility: "East Health Center",
+    isActive: true
   },
 ];
 
@@ -82,6 +87,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Invalid credentials");
       }
 
+      // Check if user is active
+      if (!foundUser.isActive) {
+        throw new Error("Your account has been deactivated");
+      }
+
       // In a real app, we'd verify the password here
       
       // Save the user to localStorage
@@ -117,12 +127,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
     }
-    
-    toast({
-      title: "Role Updated",
-      description: `User role has been updated successfully.`,
-      duration: 3000,
+  };
+  
+  const updateUserStatus = (userId: string, isActive: boolean) => {
+    const updatedUsers = users.map(user => {
+      if (user.id === userId) {
+        return { ...user, isActive };
+      }
+      return user;
     });
+    
+    setUsers(updatedUsers);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    
+    // Update current user if their status was changed
+    if (user && user.id === userId) {
+      const updatedUser = { ...user, isActive };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      
+      // If the user deactivated themselves, log them out
+      if (!isActive) {
+        logout();
+      }
+    }
+  };
+  
+  const deleteUser = (userId: string) => {
+    // Don't allow deleting the last manager
+    const managers = users.filter(u => u.role === "manager");
+    if (managers.length === 1 && managers[0].id === userId) {
+      toast({
+        title: "Cannot Delete User",
+        description: "You cannot delete the last manager account.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const updatedUsers = users.filter(user => user.id !== userId);
+    setUsers(updatedUsers);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    
+    // If the user deleted themselves, log them out
+    if (user && user.id === userId) {
+      logout();
+    }
   };
 
   return (
@@ -132,7 +182,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout, 
       isLoading, 
       allUsers: users,
-      updateUserRole 
+      updateUserRole,
+      updateUserStatus,
+      deleteUser
     }}>
       {children}
     </AuthContext.Provider>

@@ -5,6 +5,7 @@ export interface User {
   email: string;
   role: 'manager' | 'employee';
   facility?: string;
+  isActive: boolean;
 }
 
 export interface Task {
