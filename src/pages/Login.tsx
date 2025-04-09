@@ -23,8 +23,8 @@ const Login = () => {
       navigate("/dashboard");
     } catch (error) {
       toast({
-        title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        title: "登入失敗",
+        description: "無效的電子郵件或密碼。請重試。",
         variant: "destructive",
       });
     }
@@ -37,19 +37,19 @@ const Login = () => {
           <div className="flex justify-center mb-4">
             <CalendarClock className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-primary">Schedule Sync Manager</h1>
-          <p className="text-muted-foreground mt-2">Sign in to manage your tasks</p>
+          <h1 className="text-3xl font-bold text-primary">排班管理系統</h1>
+          <p className="text-muted-foreground mt-2">請登入以管理您的任務</p>
         </div>
         
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardTitle>登入</CardTitle>
+            <CardDescription>輸入您的憑證以存取您的帳戶</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">電子郵件</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -60,36 +60,33 @@ const Login = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">密碼</Label>
                 <Input 
                   id="password" 
                   type="password" 
-                  placeholder="••••••••" 
+                  placeholder="••••••" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full">Sign In</Button>
-              <Button type="button" variant="outline" className="w-full" onClick={() => navigate("/register")}>
-                Create an Account
-              </Button>
+            <CardFooter>
+              <Button type="submit" className="w-full">登入</Button>
             </CardFooter>
           </form>
         </Card>
         
         <div className="mt-6 p-4 bg-secondary/50 rounded-lg">
-          <p className="text-sm font-medium">Demo Accounts:</p>
+          <p className="text-sm font-medium">示範帳號:</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
             <div className="text-sm p-2 bg-secondary rounded">
-              <p><strong>Manager:</strong> manager@example.com</p>
-              <p><strong>Password:</strong> any password</p>
+              <p><strong>管理者:</strong> manager@example.com</p>
+              <p><strong>密碼:</strong> 任何密碼</p>
             </div>
             <div className="text-sm p-2 bg-secondary rounded">
-              <p><strong>Employee:</strong> employee1@example.com</p>
-              <p><strong>Password:</strong> any password</p>
+              <p><strong>員工:</strong> employee1@example.com</p>
+              <p><strong>密碼:</strong> 任何密碼</p>
             </div>
           </div>
         </div>

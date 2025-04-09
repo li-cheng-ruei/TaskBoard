@@ -12,6 +12,8 @@ interface AuthContextType {
   updateUserRole: (userId: string, role: "manager" | "employee") => void;
   updateUserStatus: (userId: string, isActive: boolean) => void;
   deleteUser: (userId: string) => void;
+  createUser: (userData: { name: string; email: string; password: string; facility?: string; role: "manager" | "employee", isActive: boolean }) => void;
+  changePassword: (userId: string, newPassword: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -158,8 +160,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const managers = users.filter(u => u.role === "manager");
     if (managers.length === 1 && managers[0].id === userId) {
       toast({
-        title: "Cannot Delete User",
-        description: "You cannot delete the last manager account.",
+        title: "無法刪除用戶",
+        description: "您不能刪除最後一個管理員帳戶。",
         variant: "destructive",
       });
       return;
@@ -175,6 +177,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Add createUser function
+  const createUser = (userData: { name: string; email: string; password: string; facility?: string; role: "manager" | "employee"; isActive: boolean }) => {
+    // Check if email is already used
+    if (users.some(user => user.email === userData.email)) {
+      toast({
+        title: "創建失敗",
+        description: "此電子郵件已被使用。",
+        variant: "destructive",
+      });
+      throw new Error("Email already used");
+    }
+
+    // Create a new user with a unique ID
+    const newUser: User = {
+      id: Date.now().toString(), // Simple ID generation
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      facility: userData.facility,
+      isActive: userData.isActive
+    };
+
+    const updatedUsers = [...users, newUser];
+    setUsers(updatedUsers);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    
+    return newUser;
+  };
+  
+  // Add password change function
+  const changePassword = (userId: string, newPassword: string): boolean => {
+    // Validate password (6 characters, alphanumeric)
+    if (!/^[a-zA-Z0-9]{6,}$/.test(newPassword)) {
+      toast({
+        title: "密碼變更失敗",
+        description: "密碼必須至少包含6個英文字母或數字。",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    // In a real app, we'd update the password in the database
+    // For our demo, we'll just display a success toast
+    toast({
+      title: "密碼已更新",
+      description: "您的密碼已成功更改。",
+    });
+    
+    return true;
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -184,7 +237,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       allUsers: users,
       updateUserRole,
       updateUserStatus,
-      deleteUser
+      deleteUser,
+      createUser,
+      changePassword
     }}>
       {children}
     </AuthContext.Provider>

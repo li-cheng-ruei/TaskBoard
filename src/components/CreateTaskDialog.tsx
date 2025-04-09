@@ -32,6 +32,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -51,6 +58,9 @@ interface CreateTaskDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Generate hours options (0-23)
+const hoursOptions = Array.from({ length: 24 }, (_, i) => i.toString());
+
 // Schema for task validation
 const taskSchema = z.object({
   title: z.string().min(1, "標題是必填的"),
@@ -60,8 +70,12 @@ const taskSchema = z.object({
   }),
   startHour: z.string().regex(/^([0-1]?[0-9]|2[0-3])$/, "小時格式不正確"),
   startMinute: z.string().regex(/^[0-5]?[0-9]$/, "分鐘格式不正確"),
-  durationHours: z.coerce.number().min(0).max(24),
-  durationMinutes: z.coerce.number().min(0).max(59),
+  duration: z.string().refine(value => {
+    const num = parseFloat(value);
+    return !isNaN(num) && num > 0 && num <= 24;
+  }, {
+    message: "持續時間必須是大於0且小於或等於24的數字",
+  }),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -81,8 +95,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
       startDate: new Date(),
       startHour: new Date().getHours().toString(),
       startMinute: Math.floor(new Date().getMinutes() / 15) * 15 === 0 ? "00" : (Math.floor(new Date().getMinutes() / 15) * 15).toString(),
-      durationHours: 1,
-      durationMinutes: 0,
+      duration: "1.0",
     },
   });
 
@@ -92,8 +105,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
     if (templateData) {
       form.setValue("title", templateData.title);
       form.setValue("description", templateData.description || "");
-      form.setValue("durationHours", templateData.durationHours);
-      form.setValue("durationMinutes", templateData.durationMinutes);
+      form.setValue("duration", templateData.duration || "1.0");
     }
   };
   
@@ -102,8 +114,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
     const result = saveTemplate(templateName, {
       title: form.getValues("title"),
       description: form.getValues("description"),
-      durationHours: form.getValues("durationHours"),
-      durationMinutes: form.getValues("durationMinutes"),
+      duration: form.getValues("duration"),
     });
     
     if (result) {
@@ -128,10 +139,15 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
     // Calculate registration deadline (7 days before start date)
     const registrationDeadline = addDays(startDate, -7);
     
+    // Parse duration to hours and minutes
+    const durationHours = parseFloat(data.duration);
+    const hours = Math.floor(durationHours);
+    const minutes = Math.round((durationHours - hours) * 60);
+    
     // Calculate end date based on duration
     const endDate = new Date(startDate);
-    endDate.setHours(startDate.getHours() + data.durationHours);
-    endDate.setMinutes(startDate.getMinutes() + data.durationMinutes);
+    endDate.setHours(startDate.getHours() + hours);
+    endDate.setMinutes(startDate.getMinutes() + minutes);
     
     addTask({
       title: data.title,
@@ -139,8 +155,8 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
       startDate: startDate,
       endDate: endDate,
       duration: {
-        hours: data.durationHours,
-        minutes: data.durationMinutes
+        hours: hours,
+        minutes: minutes
       },
       registrationDeadline: registrationDeadline,
     });
@@ -257,7 +273,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "MMM d")
+                              format(field.value, "yyyy年MM月dd日")
                             ) : (
                               <span>選擇日期</span>
                             )}
@@ -288,13 +304,23 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>開始時間 (小時)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="text" 
-                          placeholder="00-23" 
-                          {...field} 
-                        />
-                      </FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="選擇小時" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {hoursOptions.map((hour) => (
+                            <SelectItem key={hour} value={hour}>
+                              {hour} 點
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -306,13 +332,23 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>開始時間 (分鐘)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="text" 
-                          placeholder="00-59" 
-                          {...field} 
-                        />
-                      </FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="選擇分鐘" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {minutesOptions.map((minute) => (
+                            <SelectItem key={minute} value={minute.toString()}>
+                              {minute} 分
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -320,50 +356,23 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange 
               </div>
               
               {/* Duration */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="durationHours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>持續時間 (小時)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          min="0" 
-                          max="24" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="durationMinutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>持續時間 (分鐘)</FormLabel>
-                      <FormControl>
-                        <select
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          value={field.value}
-                          onChange={field.onChange}
-                        >
-                          {minutesOptions.map((minute) => (
-                            <option key={minute} value={minute}>
-                              {minute}
-                            </option>
-                          ))}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>任務持續時間 (小時)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="text" 
+                        placeholder="例如: 1.5 (表示1小時30分鐘)" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <div className="pt-2">
                 <p className="text-sm text-muted-foreground">

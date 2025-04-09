@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { TasksProvider } from "./contexts/TasksContext";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import React from "react";
@@ -20,7 +19,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">載入中...</div>;
   }
   
   if (!user) {
@@ -38,10 +37,6 @@ const AppRoutes = () => {
       <Route 
         path="/login" 
         element={user ? <Navigate to="/dashboard" replace /> : <Login />} 
-      />
-      <Route 
-        path="/register" 
-        element={user ? <Navigate to="/dashboard" replace /> : <Register />} 
       />
       <Route 
         path="/dashboard" 

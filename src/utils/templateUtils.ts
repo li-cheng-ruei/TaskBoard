@@ -4,8 +4,7 @@ import { toast } from "@/components/ui/use-toast";
 interface TaskTemplate {
   title: string;
   description?: string;
-  durationHours: number;
-  durationMinutes: number;
+  duration: string;
 }
 
 // Get all saved templates

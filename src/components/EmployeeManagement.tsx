@@ -19,7 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { SearchIcon, Trash2, UserX } from "lucide-react";
+import { SearchIcon, Trash2, UserX, PlusCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -33,6 +33,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -40,11 +48,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 
 const EmployeeManagement = () => {
-  const { allUsers, updateUserRole, updateUserStatus, deleteUser } = useAuth();
+  const { allUsers, updateUserRole, updateUserStatus, deleteUser, createUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  
+  // New employee form state
+  const [newEmployee, setNewEmployee] = useState({
+    name: "",
+    email: "",
+    facility: "",
+  });
   
   // Filter employees (exclude the current user if they are a manager)
   const employees = allUsers.filter((user) => user.role === "employee" || user.role === "manager");
@@ -92,19 +109,77 @@ const EmployeeManagement = () => {
     });
   };
 
+  // Handle form change for new employee
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewEmployee(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle employee creation
+  const handleCreateEmployee = () => {
+    if (!newEmployee.email || !newEmployee.name) {
+      toast({
+        title: "創建失敗",
+        description: "請填寫所有必填欄位。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      createUser({
+        ...newEmployee,
+        password: "123456", // Default password
+        role: "employee",
+        isActive: true
+      });
+      
+      toast({
+        title: "員工已創建",
+        description: `已成功創建員工帳號：${newEmployee.name}`,
+      });
+      
+      setCreateDialogOpen(false);
+      setNewEmployee({
+        name: "",
+        email: "",
+        facility: "",
+      });
+    } catch (error) {
+      toast({
+        title: "創建失敗",
+        description: "創建員工帳號時發生錯誤。",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <CardTitle>員工管理</CardTitle>
-          <div className="relative w-full md:w-64">
-            <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="搜索員工..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="搜索員工..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              className="whitespace-nowrap"
+              onClick={() => setCreateDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4 mr-1" />
+              新增員工
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -204,6 +279,65 @@ const EmployeeManagement = () => {
           </Table>
         </div>
       </CardContent>
+
+      {/* Create Employee Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>新增員工</DialogTitle>
+            <DialogDescription>
+              填寫表單創建新的員工帳號。預設密碼為 123456。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                姓名
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                value={newEmployee.name}
+                onChange={handleInputChange}
+                className="col-span-3"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                電子郵件
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                value={newEmployee.email}
+                onChange={handleInputChange}
+                className="col-span-3"
+                type="email"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="facility" className="text-right">
+                醫療機構
+              </Label>
+              <Input
+                id="facility"
+                name="facility"
+                value={newEmployee.facility}
+                onChange={handleInputChange}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleCreateEmployee}>創建員工</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
