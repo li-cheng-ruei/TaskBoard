@@ -58,7 +58,7 @@ const AppRoutes = () => {
 
 // Move the QueryClientProvider to be rendered inside the React component tree
 const App = () => (
-  <BrowserRouter>
+  <BrowserRouter basename="/TaskBoard">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
