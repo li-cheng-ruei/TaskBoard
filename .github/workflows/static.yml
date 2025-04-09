@@ -1,0 +1,55 @@
+# Build & Deploy TaskBoard to GitHub Pages
+name: Build & Deploy TaskBoard
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # 0. Checkout repository
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1. Setup Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # 2. Install dependencies and build
+      - name: Install & Build
+        run: |
+          npm ci
+          npm run build      # 输出到 dist/
+
+      # 3. Configure Pages environment
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 4. Upload build artifact
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      # 6. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
