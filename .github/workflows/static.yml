@@ -1,3 +1,4 @@
+
 # Build & Deploy TaskBoard to GitHub Pages
 name: Build & Deploy TaskBoard
 
@@ -33,17 +34,21 @@ jobs:
         with:
           node-version: 18
 
-      # 2. Install dependencies and build
+      # 2. Create .nojekyll file to disable Jekyll processing
+      - name: Create .nojekyll file
+        run: touch .nojekyll
+
+      # 3. Install dependencies and build
       - name: Install & Build
         run: |
           npm ci
-          npm run build      # 输出到 dist/
+          npm run build
 
-      # 3. Configure Pages environment
+      # 4. Configure Pages environment
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # 4. Upload build artifact
+      # 5. Upload build artifact
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
