@@ -3,18 +3,20 @@ import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTasks } from "@/contexts/TasksContext";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, ListIcon, PlusIcon, UsersIcon } from "lucide-react";
+import { CalendarIcon, ListIcon, PlusIcon, UsersIcon, FileTextIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskList from "@/components/TaskList";
 import TaskCalendar from "@/components/TaskCalendar";
 import Header from "@/components/Header";
 import CreateTaskDialog from "@/components/CreateTaskDialog";
 import EmployeeManagement from "@/components/EmployeeManagement";
+import BatchCreateTaskDialog from "@/components/BatchCreateTaskDialog";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { getUserTasks, tasks } = useTasks();
   const [openCreateTask, setOpenCreateTask] = useState(false);
+  const [openBatchCreateTask, setOpenBatchCreateTask] = useState(false);
   const [selectedTab, setSelectedTab] = useState("list");
   const userTasks = getUserTasks();
   
@@ -37,12 +39,19 @@ const Dashboard = () => {
           </div>
 
           {user?.role === 'manager' && (
-            <Button 
-              className="mt-4 md:mt-0" 
-              onClick={() => setOpenCreateTask(true)}
-            >
-              <PlusIcon className="mr-2 h-4 w-4" /> 創建任務
-            </Button>
+            <div className="mt-4 md:mt-0 flex gap-2">
+              <Button 
+                onClick={() => setOpenCreateTask(true)}
+              >
+                <PlusIcon className="mr-2 h-4 w-4" /> 創建任務
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setOpenBatchCreateTask(true)}
+              >
+                <FileTextIcon className="mr-2 h-4 w-4" /> 批量創建
+              </Button>
+            </div>
           )}
         </div>
 
@@ -88,6 +97,11 @@ const Dashboard = () => {
         <CreateTaskDialog 
           open={openCreateTask}
           onOpenChange={setOpenCreateTask}
+        />
+        
+        <BatchCreateTaskDialog 
+          open={openBatchCreateTask}
+          onOpenChange={setOpenBatchCreateTask}
         />
       </main>
     </div>

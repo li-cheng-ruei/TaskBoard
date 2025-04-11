@@ -41,7 +41,8 @@ const TaskActions: React.FC<TaskActionsProps> = ({ task }) => {
     updateTask(task.id, { status: 'completed' });
   };
   
-  if (isManager && task.createdBy === user?.id) {
+  // 修复：允许任何管理员删除和编辑任务，而不仅仅是创建者
+  if (isManager) {
     return (
       <div className="flex gap-2 w-full">
         <Button 
@@ -92,7 +93,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({ task }) => {
     );
   }
   
-  if (isEmployee) {
+  if (isEmployee || isManager) {
     if (isAssigned) {
       return (
         <div className="w-full">
