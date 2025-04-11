@@ -52,6 +52,22 @@ const demoUsers: User[] = [
     facility: "East Health Center",
     isActive: true
   },
+  {
+    id: "4",
+    name: "李承叡",
+    email: "jiannher70@gmail.com",
+    role: "manager",
+    facility: "博愛醫院",
+    isActive: true
+  },
+  {
+    id: "5",
+    name: "黃宥婕",
+    email: "karta3159237@gmail.com",
+    role: "employee",
+    facility: "博愛醫院",
+    isActive: true
+  },  
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
